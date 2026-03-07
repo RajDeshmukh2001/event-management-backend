@@ -1,6 +1,7 @@
 package com.project.event_management_system.controller;
 
-import com.project.event_management_system.model.User;
+import com.project.event_management_system.dto.CreateUserRequest;
+import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.service.AuthService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class AuthController {
 
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user) {
-        return authService.create(user);
+    public CreateUserResponse create(@RequestBody CreateUserRequest request) {
+        return authService.create(request);
     }
 }

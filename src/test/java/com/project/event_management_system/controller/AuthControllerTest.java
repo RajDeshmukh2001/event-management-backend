@@ -1,12 +1,13 @@
 package com.project.event_management_system.controller;
 
+import com.project.event_management_system.dto.CreateUserRequest;
+import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.security.autoconfigure.SecurityAutoConfiguration;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
@@ -35,40 +36,69 @@ class AuthControllerTest {
     private ObjectMapper objectMapper;
 
     private User user;
-    private User userRequest;
+    private CreateUserRequest userRequest;
+    private CreateUserResponse userResponse;
 
-    private User getUserRequest() {
-        userRequest = new User();
-        userRequest.setId(UUID.randomUUID());
-        userRequest.setName("Raj");
-        userRequest.setEmail("raj@gmail.com");
-        userRequest.setPassword("R@j2001");
-        userRequest.setRole(UserRole.ATTENDEE);
-        userRequest.setCreatedAt(LocalDateTime.now());
-        userRequest.setUpdatedAt(LocalDateTime.now());
+    private User getUser() {
+        user = User.builder()
+                .name("Raj")
+                .email("raj@gmail.com")
+                .password("$2a$hashed")
+                .updatedAt(LocalDateTime.now())
+                .build();
+        return user;
+    }
 
+    private CreateUserRequest getUserRequest() {
+        userRequest = CreateUserRequest.builder()
+                .name("Raj")
+                .email("raj@gmail.com")
+                .password("R@j2001")
+                .build();
         return userRequest;
+    }
+
+    private CreateUserResponse getUserResponse() {
+        userResponse = CreateUserResponse.builder()
+                .name("Raj")
+                .email("raj@gmail.com")
+                .build();
+        return userResponse;
     }
 
     @BeforeEach
     void setUp() {
-        user = getUserRequest();
+        UUID id = UUID.randomUUID();
+        UserRole role = UserRole.ATTENDEE;
+        LocalDateTime createdAt = LocalDateTime.now();
+
+        user = getUser();
+        user.setId(id);
+        user.setRole(role);
+        user.setCreatedAt(createdAt);
+
+        userRequest = getUserRequest();
+
+        userResponse = getUserResponse();
+        userResponse.setId(id);
+        userResponse.setRole(role);
+        userResponse.setCreatedAt(createdAt);
     }
 
     @Test
     void shouldReturn201AndUser_WhenUserCreatedSuccessfully() throws Exception {
         // When
-        when(authService.create(any(User.class))).thenReturn(user);
+        when(authService.create(any(CreateUserRequest.class))).thenReturn(userResponse);
 
         // Given and Then
         mockMvc.perform(post("/api/auth/register")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(user)))
+                        .content(objectMapper.writeValueAsString(userRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value("Raj"))
-                .andExpect(jsonPath("$.email").value("raj@gmail.com"))
-                .andExpect(jsonPath("$.password").value("R@j2001"))
-                .andExpect(jsonPath("$.role").value("ATTENDEE"));
+                .andExpect(jsonPath("$.name").value(userResponse.getName()))
+                .andExpect(jsonPath("$.email").value(userResponse.getEmail()))
+                .andExpect(jsonPath("$.role").value(userResponse.getRole().name()))
+                .andExpect(jsonPath("$.createdAt").value(userResponse.getCreatedAt().toString()));
     }
 }
