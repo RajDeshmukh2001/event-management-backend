@@ -3,6 +3,7 @@ package com.project.event_management_system.service;
 import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
+import com.project.event_management_system.mapper.UserMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -12,27 +13,22 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final UserMapper userMapper;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.userMapper = userMapper;
     }
 
     public CreateUserResponse create(CreateUserRequest request) {
-        User user = new User();
-        user.setName(request.getName());
-        user.setEmail(request.getEmail());
-        user.setRole(UserRole.ATTENDEE);
+        User user = userMapper.toEntity(request);
+
         user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setRole(UserRole.ATTENDEE);
 
         User savedUser = userRepository.save(user);
 
-        return new CreateUserResponse(
-                savedUser.getId(),
-                savedUser.getName(),
-                savedUser.getEmail(),
-                savedUser.getRole(),
-                savedUser.getCreatedAt()
-        );
+        return userMapper.toResponseDTO(savedUser);
     }
 }
