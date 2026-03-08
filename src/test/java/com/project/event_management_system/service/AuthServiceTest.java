@@ -4,7 +4,7 @@ import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
 import com.project.event_management_system.exception.EmailAlreadyExistsException;
-import com.project.event_management_system.mapper.UserMapper;
+import com.project.event_management_system.mapper.AuthMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private UserMapper userMapper;
+    private AuthMapper authMapper;
 
     @InjectMocks
     private AuthService authService;
@@ -96,10 +96,10 @@ class AuthServiceTest {
                 .password("R@jdd2001")
                 .build();
 
-        when(userMapper.toEntity(userRequest)).thenReturn(mappedUser);
+        when(authMapper.toEntity(userRequest)).thenReturn(mappedUser);
         when(passwordEncoder.encode("R@jdd2001")).thenReturn("$2a$hashed");
         when(userRepository.save(any(User.class))).thenReturn(user);
-        when(userMapper.toResponseDTO(user)).thenReturn(userResponse);
+        when(authMapper.toResponseDTO(user)).thenReturn(userResponse);
 
         // When
         CreateUserResponse response = authService.create(userRequest);
