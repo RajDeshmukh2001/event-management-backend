@@ -6,6 +6,7 @@ import com.project.event_management_system.enums.UserRole;
 import com.project.event_management_system.exception.EmailAlreadyExistsException;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.service.AuthService;
+import com.project.event_management_system.service.JwtService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +30,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class AuthControllerTest {
     @MockitoBean
     private AuthService authService;
+
+    @MockitoBean
+    private JwtService jwtService;
 
     @Autowired
     private MockMvc mockMvc;
