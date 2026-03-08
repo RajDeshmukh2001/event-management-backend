@@ -3,6 +3,7 @@ package com.project.event_management_system.service;
 import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
+import com.project.event_management_system.exception.EmailAlreadyExistsException;
 import com.project.event_management_system.mapper.UserMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
@@ -15,11 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AuthServiceTest {
@@ -108,5 +110,22 @@ class AuthServiceTest {
         assertEquals("raj@gmail.com", response.getEmail());
         assertEquals("ATTENDEE", response.getRole().name());
         assertEquals(user.getCreatedAt(), response.getCreatedAt());
+        verify(passwordEncoder, times(1)).encode(any());
+        verify(userRepository, times(1)).save(any(User.class));
+    }
+
+    @Test
+    void shouldThrowException_WhenUserEmail_AlreadyExists() {
+        // Given
+        when(userRepository.findByEmail(userRequest.getEmail())).thenReturn(Optional.of(user));
+
+        // When
+        EmailAlreadyExistsException exception = assertThrows(EmailAlreadyExistsException.class,
+                () -> authService.create(userRequest));
+
+        // Then
+        assertEquals("Email already exists", exception.getMessage());
+        verify(userRepository, never()).save(any(User.class));
+        verify(passwordEncoder, never()).encode(any());
     }
 }

@@ -3,6 +3,7 @@ package com.project.event_management_system.controller;
 import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
+import com.project.event_management_system.exception.EmailAlreadyExistsException;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.service.AuthService;
 import org.junit.jupiter.api.BeforeEach;
@@ -100,5 +101,19 @@ class AuthControllerTest {
                 .andExpect(jsonPath("$.email").value(userResponse.getEmail()))
                 .andExpect(jsonPath("$.role").value(userResponse.getRole().name()))
                 .andExpect(jsonPath("$.createdAt").value(userResponse.getCreatedAt().toString()));
+    }
+
+    @Test
+    void shouldReturn409AndThrowException_WhenUserEmailAlreadyExists() throws Exception {
+        // When
+        when(authService.create(any(CreateUserRequest.class))).thenThrow(new EmailAlreadyExistsException("Email already exists"));
+
+        // When and Then
+        mockMvc.perform(post("/api/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(userRequest)))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("EMAIL_EXISTS"))
+                .andExpect(jsonPath("$.message").value("Email already exists"));
     }
 }

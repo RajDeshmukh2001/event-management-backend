@@ -3,6 +3,7 @@ package com.project.event_management_system.service;
 import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.enums.UserRole;
+import com.project.event_management_system.exception.EmailAlreadyExistsException;
 import com.project.event_management_system.mapper.UserMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
@@ -22,13 +23,15 @@ public class AuthService {
     }
 
     public CreateUserResponse create(CreateUserRequest request) {
-        User user = userMapper.toEntity(request);
+        String userEmail = request.getEmail().toLowerCase().trim();
+        if (userRepository.findByEmail(userEmail).isPresent()) {
+            throw new EmailAlreadyExistsException("Email already exists");
+        }
 
+        User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.ATTENDEE);
-
         User savedUser = userRepository.save(user);
-
         return userMapper.toResponseDTO(savedUser);
     }
 }
