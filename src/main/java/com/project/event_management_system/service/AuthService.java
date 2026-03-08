@@ -5,6 +5,7 @@ import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.dto.LoginRequest;
 import com.project.event_management_system.enums.UserRole;
 import com.project.event_management_system.exception.EmailAlreadyExistsException;
+import com.project.event_management_system.exception.ResourceNotFoundException;
 import com.project.event_management_system.mapper.UserMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
@@ -19,12 +20,14 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;
     private final UserMapper userMapper;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, UserMapper userMapper) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, UserMapper userMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
+        this.jwtService = jwtService;
         this.userMapper = userMapper;
     }
 
@@ -50,8 +53,11 @@ public class AuthService {
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User with email does not exists"));
+
         if (authentication.isAuthenticated()) {
-            return "Success";
+            return jwtService.generateToken(user);
         }
 
         return "Fail";
