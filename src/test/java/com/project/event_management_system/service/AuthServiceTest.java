@@ -55,7 +55,7 @@ class AuthServiceTest {
         userRequest = CreateUserRequest.builder()
                 .name("Raj")
                 .email("raj@gmail.com")
-                .password("R@j2001")
+                .password("R@jdd2001")
                 .build();
         return userRequest;
     }
@@ -93,10 +93,11 @@ class AuthServiceTest {
         User mappedUser = User.builder()
                 .name("Raj")
                 .email("raj@gmail.com")
+                .password("R@jdd2001")
                 .build();
 
         when(userMapper.toEntity(userRequest)).thenReturn(mappedUser);
-        when(passwordEncoder.encode("R@j2001")).thenReturn("$2a$hashed");
+        when(passwordEncoder.encode("R@jdd2001")).thenReturn("$2a$hashed");
         when(userRepository.save(any(User.class))).thenReturn(user);
         when(userMapper.toResponseDTO(user)).thenReturn(userResponse);
 

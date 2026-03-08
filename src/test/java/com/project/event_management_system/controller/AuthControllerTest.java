@@ -54,7 +54,7 @@ class AuthControllerTest {
         userRequest = CreateUserRequest.builder()
                 .name("Raj")
                 .email("raj@gmail.com")
-                .password("R@j2001")
+                .password("R@jdd2001")
                 .build();
         return userRequest;
     }
@@ -97,10 +97,10 @@ class AuthControllerTest {
                         .content(objectMapper.writeValueAsString(userRequest)))
                 .andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.name").value(userResponse.getName()))
-                .andExpect(jsonPath("$.email").value(userResponse.getEmail()))
-                .andExpect(jsonPath("$.role").value(userResponse.getRole().name()))
-                .andExpect(jsonPath("$.createdAt").value(userResponse.getCreatedAt().toString()));
+                .andExpect(jsonPath("$.data.name").value(userResponse.getName()))
+                .andExpect(jsonPath("$.data.email").value(userResponse.getEmail()))
+                .andExpect(jsonPath("$.data.role").value(userResponse.getRole().name()))
+                .andExpect(jsonPath("$.data.createdAt").value(userResponse.getCreatedAt().toString()));
     }
 
     @Test
