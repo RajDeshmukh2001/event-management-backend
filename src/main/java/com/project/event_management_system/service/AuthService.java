@@ -3,15 +3,15 @@ package com.project.event_management_system.service;
 import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.dto.LoginRequest;
+import com.project.event_management_system.dto.LoginResponse;
 import com.project.event_management_system.enums.UserRole;
 import com.project.event_management_system.exception.EmailAlreadyExistsException;
 import com.project.event_management_system.exception.ResourceNotFoundException;
-import com.project.event_management_system.mapper.UserMapper;
+import com.project.event_management_system.mapper.AuthMapper;
 import com.project.event_management_system.model.User;
 import com.project.event_management_system.repository.UserRepository;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -21,14 +21,14 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
-    private final UserMapper userMapper;
+    private final AuthMapper authMapper;
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, UserMapper userMapper) {
+    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, JwtService jwtService, AuthMapper authMapper) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
-        this.userMapper = userMapper;
+        this.authMapper = authMapper;
     }
 
     public CreateUserResponse create(CreateUserRequest request) {
@@ -41,25 +41,25 @@ public class AuthService {
 
         request.setName(userName);
         request.setEmail(userEmail);
-        User user = userMapper.toEntity(request);
+        User user = authMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.ATTENDEE);
         User savedUser = userRepository.save(user);
-        return userMapper.toResponseDTO(savedUser);
+        return authMapper.toResponseDTO(savedUser);
     }
 
-    public String login(LoginRequest request) {
-        Authentication authentication = authenticationManager.authenticate(
+    public LoginResponse login(LoginRequest request) {
+        authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
         );
 
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new ResourceNotFoundException("USER_NOT_FOUND", "User with email does not exists"));
 
-        if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(user);
-        }
+        String token =  jwtService.generateToken(user);
 
-        return "Fail";
+        LoginResponse response = authMapper.toLoginResponseDTO(user);
+        response.setToken(token);
+        return response;
     }
 }
