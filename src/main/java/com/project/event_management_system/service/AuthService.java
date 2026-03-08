@@ -23,11 +23,15 @@ public class AuthService {
     }
 
     public CreateUserResponse create(CreateUserRequest request) {
+        String userName = request.getName().trim();
         String userEmail = request.getEmail().toLowerCase().trim();
+
         if (userRepository.findByEmail(userEmail).isPresent()) {
             throw new EmailAlreadyExistsException("Email already exists");
         }
 
+        request.setName(userName);
+        request.setEmail(userEmail);
         User user = userMapper.toEntity(request);
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(UserRole.ATTENDEE);

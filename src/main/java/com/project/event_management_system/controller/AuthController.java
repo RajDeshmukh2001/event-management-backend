@@ -4,6 +4,7 @@ import com.project.event_management_system.dto.CreateUserRequest;
 import com.project.event_management_system.dto.CreateUserResponse;
 import com.project.event_management_system.response.SuccessResponse;
 import com.project.event_management_system.service.AuthService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,7 +19,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<SuccessResponse<CreateUserResponse>> create(@RequestBody CreateUserRequest request) {
+    public ResponseEntity<SuccessResponse<CreateUserResponse>> create(@Valid @RequestBody CreateUserRequest request) {
         CreateUserResponse response = authService.create(request);
         return ResponseEntity
                 .status(HttpStatus.CREATED)
